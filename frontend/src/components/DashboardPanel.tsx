@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AnimatedArrow } from "./AnimatedArrow";
+import { resolveApiPath } from "@/lib/api-base";
 import type { HealthResponse, StatsResponse } from "@/lib/types";
 
 const ARCH = [
@@ -84,10 +85,10 @@ export function DashboardPanel({ stats, casesLoaded, health, className = "" }: D
 
       <h3 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-slate-400">Quick links</h3>
       <div className="flex flex-col gap-1 text-xs">
-        <a href="/engine/docs" target="_blank" rel="noreferrer" className="text-cyan-400 hover:underline">
+        <a href={resolveApiPath("/docs")} target="_blank" rel="noreferrer" className="text-cyan-400 hover:underline">
           API Docs
         </a>
-        <a href="/engine/health" target="_blank" rel="noreferrer" className="text-cyan-400 hover:underline">
+        <a href={resolveApiPath("/health")} target="_blank" rel="noreferrer" className="text-cyan-400 hover:underline">
           Health
         </a>
       </div>

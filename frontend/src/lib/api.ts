@@ -7,9 +7,7 @@ import type {
   TraceStep,
   TriageResponse,
 } from "./types";
-
-/** Same-origin proxy via Next.js rewrites (/engine, not /api — avoids Clerk middleware conflict). */
-const API_BASE = "/engine";
+import { resolveApiPath } from "./api-base";
 
 export type BootstrapResult = {
   health: HealthResponse | null;
@@ -24,15 +22,41 @@ function backendHint(): string {
     const host = window.location.hostname;
     if (host.endsWith(".vercel.app") || (host !== "localhost" && host !== "127.0.0.1")) {
       return (
-        "Production backend not configured. In Vercel → Project Settings → Environment Variables, " +
-        "set API_BACKEND_URL to your public Render/Railway API URL (e.g. https://triage-api.onrender.com), then redeploy."
+        "Set NEXT_PUBLIC_API_URL=https://triage-agent-7xts.onrender.com on Vercel (direct calls avoid proxy timeouts). " +
+        "Also set CORS_ORIGINS=https://vizagent-dun.vercel.app on Render."
       );
     }
   }
   return "Start the API locally: uvicorn app.api.main:app --host 127.0.0.1 --port 8000";
 }
 
-async function request<T>(path: string, init?: RequestInit, token?: string | null): Promise<T> {
+function friendlyHttpError(status: number, raw: string): string {
+  const html = raw.trim().startsWith("<!DOCTYPE") || raw.trim().startsWith("<html");
+  if (status === 401) {
+    return "Authentication required. Sign in again — and ensure Render has AUTH_MODE=clerk with CLERK_ISSUER set.";
+  }
+  if (status === 502 || status === 504 || (html && status >= 500)) {
+    return (
+      "Backend timed out or is waking up (common on Render free tier during triage). " +
+      "Wait ~30 seconds and try again. " +
+      backendHint()
+    );
+  }
+  if (status === 404 && raw.includes("DNS_HOSTNAME_RESOLVED_PRIVATE")) {
+    return `Backend URL points to localhost. ${backendHint()}`;
+  }
+  const snippet = raw.slice(0, 120).replace(/\s+/g, " ").trim();
+  return html
+    ? `Request failed (${status}). Backend unavailable — try again in a moment.`
+    : `Request failed (${status}). ${snippet || "No response body"}`;
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  token?: string | null,
+  timeoutMs = 120_000,
+): Promise<T> {
   const headers: Record<string, string> = {
     ...(init?.headers as Record<string, string> | undefined),
   };
@@ -41,45 +65,46 @@ async function request<T>(path: string, init?: RequestInit, token?: string | nul
     headers["Content-Type"] = "application/json";
   }
 
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}${path}`, { ...init, headers, cache: "no-store" });
-  } catch {
+    res = await fetch(resolveApiPath(path), {
+      ...init,
+      headers,
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") {
+      throw new Error(`Triage timed out after ${timeoutMs / 1000}s. ${backendHint()}`);
+    }
     throw new Error(`Cannot reach the triage engine. ${backendHint()}`);
+  } finally {
+    window.clearTimeout(timer);
   }
 
   if (!res.ok) {
     const text = await res.text();
-    const snippet = text.slice(0, 160).replace(/\s+/g, " ").trim();
-    if (res.status === 401) {
-      throw new Error(
-        "Authentication required. Sign in again — and ensure Render has AUTH_MODE=clerk with CLERK_ISSUER set.",
-      );
-    }
-    if (res.status === 404 && snippet.includes("DNS_HOSTNAME_RESOLVED_PRIVATE")) {
-      throw new Error(
-        `Backend URL points to a private address (localhost). ${backendHint()}`,
-      );
-    }
-    throw new Error(`Request failed (${res.status}). ${snippet || "No response body"}`);
+    throw new Error(friendlyHttpError(res.status, text));
   }
   return res.json() as Promise<T>;
 }
 
 export function getHealth() {
-  return request<HealthResponse>("/health");
+  return request<HealthResponse>("/health", undefined, null, 30_000);
 }
 
 export function getConfig() {
-  return request<AppConfig>("/config");
+  return request<AppConfig>("/config", undefined, null, 30_000);
 }
 
 export async function getCases(): Promise<CaseItem[]> {
-  const data = await request<{ cases: CaseItem[] }>("/cases");
+  const data = await request<{ cases: CaseItem[] }>("/cases", undefined, null, 30_000);
   return data.cases ?? [];
 }
 
-/** Bundled dataset when the API proxy is misconfigured or offline. */
 export async function getCasesFallback(): Promise<CaseItem[]> {
   const res = await fetch("/data/cases.json", { cache: "force-cache" });
   if (!res.ok) throw new Error("Local case dataset unavailable");
@@ -105,6 +130,7 @@ export function runTriage(patientId: string, message: string, token?: string | n
       body: JSON.stringify({ patient_id: patientId, message }),
     },
     token,
+    180_000,
   );
 }
 
@@ -116,15 +142,16 @@ export function runDebug(patientId: string, message: string, token?: string | nu
       body: JSON.stringify({ patient_id: patientId, message }),
     },
     token,
+    180_000,
   );
 }
 
 export function getHistory(token?: string | null) {
-  return request<{ records: HistoryRecord[] }>("/history?limit=50", undefined, token);
+  return request<{ records: HistoryRecord[] }>("/history?limit=50", undefined, token, 30_000);
 }
 
 export function getStats(token?: string | null) {
-  return request<StatsResponse>("/stats", undefined, token);
+  return request<StatsResponse>("/stats", undefined, token, 30_000);
 }
 
 export async function bootstrapApp(): Promise<BootstrapResult> {

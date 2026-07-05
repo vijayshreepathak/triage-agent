@@ -254,7 +254,8 @@ With these set, visiting the Render URL redirects to your **ViZ Triage** Vercel 
 
 | Variable | Required | Value |
 |----------|----------|-------|
-| `API_BACKEND_URL` | **Yes** | `https://triage-agent-7xts.onrender.com` (no `/api` suffix) |
+| `NEXT_PUBLIC_API_URL` | **Yes** | `https://triage-agent-7xts.onrender.com` — **direct browser calls (fixes 502 on triage)** |
+| `API_BACKEND_URL` | Yes | Same URL — used for `/engine` rewrites fallback |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | **Yes** | `pk_test_...` or `pk_live_...` |
 | `CLERK_SECRET_KEY` | **Yes** | `sk_test_...` or `sk_live_...` |
 
@@ -390,7 +391,8 @@ Copy `frontend/.env.example` → `frontend/.env.local`.
 
 | Variable | Description |
 |----------|-------------|
-| `API_BACKEND_URL` | Backend URL for Next.js rewrites (**required on Vercel**) |
+| `NEXT_PUBLIC_API_URL` | Direct Render URL in production (**required on Vercel**) | `https://triage-agent-7xts.onrender.com` |
+| `API_BACKEND_URL` | Next.js rewrite fallback | Same as above |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk widget (optional) |
 | `CLERK_SECRET_KEY` | Clerk server-side middleware (optional) |
 
@@ -490,7 +492,7 @@ python scripts/evaluate_dataset.py
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | **`DNS_HOSTNAME_RESOLVED_PRIVATE` on Vercel** | `API_BACKEND_URL` missing → defaults to `127.0.0.1:8000` | Vercel → Settings → Env → `API_BACKEND_URL=https://your-api.onrender.com` → **Redeploy** |
-| **`404 {"detail":"Not Found"}` on Vercel** | Wrong backend URL or Clerk blocked `/api/*` | Set `API_BACKEND_URL=https://triage-agent-7xts.onrender.com` (**no `/api` suffix**). App uses `/engine/*` proxy path |
+| **`502` on Run Triage** | Vercel proxy times out (~10–30s) before LangGraph finishes | Set `NEXT_PUBLIC_API_URL=https://triage-agent-7xts.onrender.com` on Vercel + `CORS_ORIGINS` / `FRONTEND_URL` on Render |
 | **`/engine/health` returns 404 on Vercel** | Root Directory not set to `frontend` | Vercel project settings → Root Directory → `frontend` |
 | **Two different UIs / themes** | Render serves legacy static UI when `APP_ENV=dev` | Set `APP_ENV=production` and `FRONTEND_URL=https://your-app.vercel.app` on Render → redeploy |
 | **CORS errors** (direct API calls) | Missing origin in backend | Add Vercel URL to `CORS_ORIGINS` in backend env |

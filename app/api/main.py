@@ -66,6 +66,9 @@ def create_app() -> FastAPI:
         lifespan=_lifespan,
     )
     origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+    frontend = settings.frontend_url.strip().rstrip("/")
+    if frontend and frontend not in origins:
+        origins.append(frontend)
     if origins:
         app.add_middleware(
             CORSMiddleware,
