@@ -1,0 +1,192 @@
+[33mcommit fbdca176d4b5715fa00e1e22c3d3586d7c9d1e66[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Vijayshree Pathak <vvaibhav_be23@thapar.edu>
+Commit: Vijayshree Pathak <vvaibhav_be23@thapar.edu>
+
+    Initial production commit
+
+[1mdiff --git a/.env.example b/.env.example[m
+[1mnew file mode 100644[m
+[1mindex 0000000..8a35607[m
+[1m--- /dev/null[m
+[1m+++ b/.env.example[m
+[36m@@ -0,0 +1,50 @@[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32m# LLM — Anthropic Claude (default)[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32mLLM_PROVIDER=anthropic[m
+[32m+[m[32mANTHROPIC_API_KEY=paste-your-key-here[m
+[32m+[m[32mANTHROPIC_MODEL=claude-sonnet-4-5[m
+[32m+[m[32mLLM_TEMPERATURE=0.0[m
+[32m+[m[32mLLM_TIMEOUT_SECONDS=60[m
+[32m+[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32m# Search — duckduckgo | tavily | mcp | none[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32mSEARCH_PROVIDER=duckduckgo[m
+[32m+[m[32mTAVILY_API_KEY=[m
+[32m+[m[32mSEARCH_MAX_RESULTS=4[m
+[32m+[m[32mSEARCH_MIN_RELEVANCE=0.5[m
+[32m+[m
+[32m+[m[32m# MCP search (run: python -m mcp_server.server)[m
+[32m+[m[32m# SEARCH_PROVIDER=mcp[m
+[32m+[m[32mMCP_SERVER_URL=http://127.0.0.1:8765/mcp[m
+[32m+[m[32mMCP_SEARCH_TOOL_NAME=search[m
+[32m+[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32m# PostgreSQL — Neon (production) or local Docker[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32m# Neon: postgresql+asyncpg://USER:PASS@HOST/neondb?ssl=require[m
+[32m+[m[32m# Docker: postgresql+asyncpg://triage:triage_secret@localhost:5432/triage[m
+[32m+[m[32mDATABASE_URL=sqlite+aiosqlite:///./triage.db[m
+[32m+[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32m# Auth — none | api_key | clerk[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32mAUTH_MODE=clerk[m
+[32m+[m[32mAPI_KEYS=[m
+[32m+[m
+[32m+[m[32m# Clerk — https://dashboard.clerk.com (or: npx clerk env pull --file .env)[m
+[32m+[m[32mCLERK_PUBLISHABLE_KEY=pk_test_your_key_here[m
+[32m+[m[32mCLERK_SECRET_KEY=sk_test_your_key_here[m
+[32m+[m[32mCLERK_ISSUER=https://your-instance.clerk.accounts.dev[m
+[32m+[m[32m# CLERK_JWKS_URL=https://your-instance.clerk.accounts.dev/.well-known/jwks.json[m
+[32m+[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32m# Production hardening[m
+[32m+[m[32m# ============================================================[m
+[32m+[m[32mRATE_LIMIT_PER_MINUTE=30[m
+[32m+[m[32mMAX_RETRIES=3[m
+[32m+[m[32mRETRY_BASE_DELAY_SECONDS=0.5[m
+[32m+[m[32mAPP_ENV=dev[m
+[32m+[m[32mLOG_LEVEL=INFO[m
+[32m+[m[32mDEBUG_ENDPOINT_ENABLED=true[m
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mnew file mode 100644[m
+[1mindex 0000000..48db385[m
+[1m--- /dev/null[m
+[1m+++ b/.gitignore[m
+[36m@@ -0,0 +1,39 @@[m
+[32m+[m[32m# Python[m
+[32m+[m[32m.venv/[m
+[32m+[m[32m__pycache__/[m
+[32m+[m[32m*.pyc[m
+[32m+[m[32m*.pyo[m
+[32m+[m[32m*.egg-info/[m
+[32m+[m[32mdist/[m
+[32m+[m[32mbuild/[m
+[32m+[m
+[32m+[m[32m# Secrets & local config[m
+[32m+[m[32m.env[m
+[32m+[m[32m.env.local[m
+[32m+[m[32m.env.*.local[m
+[32m+[m[32mfrontend/.env.local[m
+[32m+[m
+[32m+[m[32m# Test / lint caches[m
+[32m+[m[32m.pytest_cache/[m
+[32m+[m[32m.coverage[m
+[32m+[m[32mhtmlcov/[m
+[32m+[m[32m.ruff_cache/[m
+[32m+[m
+[32m+[m[32m# SQLite (local dev fallback)[m
+[32m+[m[32m*.db[m
+[32m+[m[32mtriage.db[m
+[32m+[m
+[32m+[m[32m# IDE[m
+[32m+[m[32m.idea/[m
+[32m+[m[32m.vscode/[m
+[32m+[m[32m*.swp[m
+[32m+[m
+[32m+[m[32m# OS[m
+[32m+[m[32m.DS_Store[m
+[32m+[m[32mThumbs.db[m
+[32m+[m
+[32m+[m[32m# Frontend (also see frontend/.gitignore)[m
+[32m+[m[32mfrontend/node_modules/[m
+[32m+[m[32mfrontend/.next/[m
+[32m+[m[32mfrontend/out/[m
+[32m+[m[32mfrontend/.vercel/[m
+[1mdiff --git a/Procfile b/Procfile[m
+[1mnew file mode 100644[m
+[1mindex 0000000..bdffc42[m
+[1m--- /dev/null[m
+[1m+++ b/Procfile[m
+[36m@@ -0,0 +1 @@[m
+[32m+[m[32mweb: uvicorn app.api.main:app --host 0.0.0.0 --port ${PORT:-8000}[m
+[1mdiff --git a/README.md b/README.md[m
+[1mnew file mode 100644[m
+[1mindex 0000000..8233e13[m
+[1m--- /dev/null[m
+[1m+++ b/README.md[m
+[36m@@ -0,0 +1,403 @@[m
+[32m+[m[32m# ViZ Triage Agent[m
+[32m+[m
+[32m+[m[32m**Clinical symptom triage co-pilot** — an 11-node LangGraph pipeline with Claude, PostgreSQL history, optional Clerk auth, and MCP-backed medical search.[m
+[32m+[m
+[32m+[m[32m**Repository:** [github.com/vijayshreepathak/triage-agent](https://github.com/vijayshreepathak/triage-agent)[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+[32m+[m[32m## Table of contents[m
+[32m+[m
+[32m+[m[32m- [Architecture overview](#architecture-overview)[m
+[32m+[m[32m- [LangGraph pipeline](#langgraph-pipeline)[m
+[32m+[m[32m- [Request flow](#request-flow)[m
+[32m+[m[32m- [Production deployment](#production-deployment)[m
+[32m+[m[32m- [Local development](#local-development)[m
+[32m+[m[32m- [Environment variables](#environment-variables)[m
+[32m+[m[32m- [API reference](#api-reference)[m
+[32m+[m[32m- [Project structure](#project-structure)[m
+[32m+[m[32m- [Tests](#tests)[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+[32m+[m[32m## Architecture overview[m
+[32m+[m
+[32m+[m[32mThe system is a **monorepo** with three runtime processes locally, and **two hosted services** in production (Vercel + Render/Railway).[m
+[32m+[m
+[32m+[m[32m```mermaid[m
+[32m+[m[32mflowchart TB[m
+[32m+[m[32m    subgraph Client["Browser"][m
+[32m+[m[32m        UI["ViZ Triage UI<br/>(Next.js 16)"][m
+[32m+[m[32m    end[m
+[32m+[m
+[32m+[m[32m    subgraph Vercel["Vercel — frontend"][m
+[32m+[m[32m        Next["Next.js App Router"][m
+[32m+[m[32m        Proxy["/api/* rewrite proxy"][m
+[32m+[m[32m    end[m
+[32m+[m
+[32m+[m[32m    subgraph Backend["Render / Railway — backend"][m
+[32m+[m[32m        API["FastAPI + Uvicorn"][m
+[32m+[m[32m        Graph["LangGraph runner"][m
+[32m+[m[32m        Auth["Auth layer<br/>none | api_key | clerk"][m
+[32m+[m[32m    end[m
+[32m+[m
+[32m+[m[32m    subgraph Data["Data & external services"][m
+[32m+[m[32m        Neon["Neon PostgreSQL"][m
+[32m+[m[32m        Claude["Anthropic Claude"][m
+[32m+[m[32m        Search["Search provider<br/>DuckDuckGo | Tavily | MCP"][m
+[32m+[m[32m        MCP["MCP server<br/>(optional, separate process)"][m
+[32m+[m[32m        Clerk["Clerk JWT / JWKS"][m
+[32m+[m[32m    end[m
+[32m+[m
+[32m+[m[32m    UI --> Next[m
+[32m+[m[32m    Next --> Proxy[m
+[32m+[m[32m    Proxy -->|"API_BACKEND_URL"| API[m
+[32m+[m[32m    API --> Auth[m
+[32m+[m[32m    Auth --> Graph[m
+[32m+[m[32m    Graph --> Claude[m
+[32m+[m[32m    Graph --> Search[m
+[32m+[m[32m    Search -.->|"SEARCH_PROVIDER=mcp"| MCP[m
+[32m+[m[32m    API --> Neon[m
+[32m+[m[32m    Auth -.->|"AUTH_MODE=clerk"| Clerk[m
+[32m+[m[32m    UI -.->|"optional sign-in"| Clerk[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m| Layer | Technology | Host |[m
+[32m+[m[32m|-------|------------|------|[m
+[32m+[m[32m| **UI** | Next.js 16, React 19, Tailwind 4, Framer Motion | **Vercel** |[m
+[32m+[m[32m| **API** | FastAPI, LangGraph, Pydantic v2 | **Render / Railway / Fly.io** |[m
+[32m+[m[32m| **Database** | PostgreSQL via SQLAlchemy async (`asyncpg`) | **Neon** (recommended) |[m
+[32m+[m[32m| **LLM** | Claude Sonnet (default) | Anthropic API |[m
+[32m+[m[32m| **Search** | DuckDuckGo, Tavily, or MCP | In-process or separate MCP server |[m
+[32m+[m[32m| **Auth** | Clerk JWT (optional) | Clerk + FastAPI JWKS verification |[m

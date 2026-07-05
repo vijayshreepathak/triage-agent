@@ -1,13 +1,25 @@
 # ViZ Triage Agent
 
-**Clinical symptom triage co-pilot** — an 11-node LangGraph pipeline with Claude, PostgreSQL history, optional Clerk auth, and MCP-backed medical search.
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](requirements.txt)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](frontend/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-pipeline-purple.svg)](app/graph/builder.py)
+[![Tests](https://img.shields.io/badge/tests-55%20passing-brightgreen.svg)](tests/)
 
-**Repository:** [github.com/vijayshreepathak/triage-agent](https://github.com/vijayshreepathak/triage-agent)
+**Clinical symptom triage co-pilot** built for the Stance Health technical interview — an 11-node LangGraph pipeline with Claude, PostgreSQL history, optional Clerk auth, and MCP-backed medical search.
+
+| | |
+|---|---|
+| **Repository** | [github.com/vijayshreepathak/triage-agent](https://github.com/vijayshreepathak/triage-agent) |
+| **Frontend** | Next.js 16 · React 19 · Tailwind 4 · Framer Motion |
+| **Backend** | FastAPI · LangGraph · Pydantic v2 · SQLAlchemy async |
+| **Deploy** | Vercel (UI) + Render / Railway (API) + Neon (DB) |
 
 ---
 
 ## Table of contents
 
+- [What it does](#what-it-does)
 - [Architecture overview](#architecture-overview)
 - [LangGraph pipeline](#langgraph-pipeline)
 - [Request flow](#request-flow)
@@ -17,6 +29,22 @@
 - [API reference](#api-reference)
 - [Project structure](#project-structure)
 - [Tests](#tests)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## What it does
+
+ViZ Triage Agent helps clinicians and patients evaluate symptom narratives through a structured AI pipeline:
+
+1. **Parse** free-text patient messages into clinical signals
+2. **Detect red flags** using rules + LLM reasoning
+3. **Classify urgency** (emergency, urgent, routine, etc.)
+4. **Ground answers** with optional medical search (DuckDuckGo, Tavily, or MCP)
+5. **Explain** results in plain language with confidence scores
+6. **Persist history** to PostgreSQL when auth is enabled
+
+The **Next.js UI** ships with a virtualized 100-case sidebar, animated LangGraph visual guide, mobile layout, and live execution trace mode.
 
 ---
 
@@ -73,6 +101,21 @@ flowchart TB
 
 > **Why two hosts?** Vercel runs the Next.js frontend and rewrites `/api/*` to your backend URL. The FastAPI + LangGraph engine is a long-running Python process and must run on a container/PaaS host — it cannot run as a Vercel serverless function in this architecture.
 
+### Monorepo layout
+
+```mermaid
+flowchart LR
+    subgraph Repo["triage-agent/"]
+        FE["frontend/<br/>Next.js → Vercel"]
+        BE["app/<br/>FastAPI → Render"]
+        MCP["mcp_server/<br/>optional sidecar"]
+        DB["tests/ scripts/<br/>dev tooling"]
+    end
+
+    FE -->|"API_BACKEND_URL"| BE
+    BE --> MCP
+```
+
 ---
 
 ## LangGraph pipeline
@@ -112,7 +155,7 @@ flowchart LR
 | `confidence_scoring` | Calibrated confidence + disclaimers |
 | `build_structured_response` | Final JSON contract for the UI |
 
-Design highlights:
+**Design highlights**
 
 - **Dependency injection** — nodes are bundled via `NodeBundle`; the graph has no direct LLM/search imports (testable with stubs).
 - **Safe degradation** — every path returns a valid triage response; infrastructure errors become structured 500s with request IDs.
@@ -151,28 +194,25 @@ The frontend never calls the backend directly from the browser — it uses **sam
 
 ## Production deployment
 
-### Step 1 — Push to GitHub
+### Prerequisites
 
-```bash
-git init
-git add .
-git commit -m "Initial commit: ViZ Triage Agent"
-git branch -M main
-git remote add origin https://github.com/vijayshreepathak/triage-agent.git
-git push -u origin main
-```
+- GitHub repo: [vijayshreepathak/triage-agent](https://github.com/vijayshreepathak/triage-agent)
+- [Anthropic API key](https://console.anthropic.com)
+- [Neon PostgreSQL](https://neon.tech) database URL
+- [Vercel](https://vercel.com) account (frontend)
+- [Render](https://render.com) or [Railway](https://railway.app) account (backend)
 
-### Step 2 — Deploy backend (Render recommended)
+### Step 1 — Deploy backend (Render recommended)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
 Or manually:
 
-1. Create a **Web Service** on [Render](https://render.com) from this repo (root directory = repo root).
+1. Create a **Web Service** on [Render](https://render.com) from this repo (**root directory** = repo root, not `frontend/`).
 2. **Build command:** `pip install -r requirements.txt`
 3. **Start command:** `uvicorn app.api.main:app --host 0.0.0.0 --port $PORT`
 4. **Health check path:** `/health`
-5. Set environment variables (see [backend env](#backend-env)):
+5. Set environment variables (see [Backend environment variables](#backend-environment-variables)):
 
 ```env
 ANTHROPIC_API_KEY=sk-ant-...
@@ -187,22 +227,22 @@ CORS_ORIGINS=https://your-app.vercel.app
 
 6. Copy the public URL, e.g. `https://triage-api.onrender.com`.
 
-**Alternatives:** `Procfile` + Railway (`railway.toml`) or Fly.io with the same start command.
+**Alternatives:** use the included `Procfile` (Railway via `railway.toml`) or Fly.io with the same start command.
 
 > For **MCP search** in production, deploy `python -m mcp_server.server` as a second service and set `SEARCH_PROVIDER=mcp` + `MCP_SERVER_URL`. For simplicity, use `SEARCH_PROVIDER=duckduckgo` on Render free tier.
 
-### Step 3 — Deploy frontend (Vercel)
+### Step 2 — Deploy frontend (Vercel)
 
 1. Import [github.com/vijayshreepathak/triage-agent](https://github.com/vijayshreepathak/triage-agent) on [Vercel](https://vercel.com).
 2. Set **Root Directory** to `frontend`.
-3. Framework preset: **Next.js** (auto-detected).
+3. Framework preset: **Next.js** (auto-detected from `frontend/vercel.json`).
 4. Add environment variables:
 
-| Variable | Value |
-|----------|-------|
-| `API_BACKEND_URL` | `https://triage-api.onrender.com` (your backend URL) |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Optional — `pk_live_...` |
-| `CLERK_SECRET_KEY` | Optional — `sk_live_...` |
+| Variable | Required | Value |
+|----------|----------|-------|
+| `API_BACKEND_URL` | **Yes** | `https://triage-api.onrender.com` (your backend URL) |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | No | `pk_live_...` |
+| `CLERK_SECRET_KEY` | No | `sk_live_...` |
 
 5. Deploy.
 
@@ -215,7 +255,7 @@ npx vercel
 npx vercel --prod
 ```
 
-### Step 4 — Verify
+### Step 3 — Verify
 
 | Check | URL |
 |-------|-----|
@@ -224,7 +264,7 @@ npx vercel --prod
 | Cases | `https://your-app.vercel.app/api/cases` |
 | Backend direct | `https://triage-api.onrender.com/health` |
 
-Update backend `CORS_ORIGINS` with your final Vercel domain (including preview URLs if needed).
+After Vercel assigns your domain, update backend `CORS_ORIGINS` to include it (and preview URLs if needed).
 
 ### Deployment diagram
 
@@ -258,12 +298,20 @@ flowchart LR
 
 ## Local development
 
-Three terminals for the full stack:
+### Clone the repository
+
+```bash
+git clone https://github.com/vijayshreepathak/triage-agent.git
+cd triage-agent
+```
+
+### Run the full stack (3 terminals)
 
 ```powershell
 # Terminal 1 — API
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # macOS / Linux
 pip install -r requirements.txt
 copy .env.example .env          # add ANTHROPIC_API_KEY, DATABASE_URL
 uvicorn app.api.main:app --host 127.0.0.1 --port 8000 --reload
@@ -284,6 +332,7 @@ npm run dev
 | **Next.js UI** (primary) | http://localhost:3000 |
 | **FastAPI** (API + legacy static UI) | http://127.0.0.1:8000 |
 | **MCP server** | http://127.0.0.1:8765/mcp |
+| **OpenAPI docs** | http://127.0.0.1:8000/docs |
 
 **Local PostgreSQL (optional):**
 
@@ -296,9 +345,9 @@ docker compose up -d
 
 ## Environment variables
 
-### Backend (`.env`)
+### Backend environment variables
 
-Copy from `.env.example`. Key settings:
+Copy `.env.example` → `.env` at the repo root.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
@@ -306,12 +355,13 @@ Copy from `.env.example`. Key settings:
 | `DATABASE_URL` | Async SQLAlchemy URL | `postgresql+asyncpg://...@neon.tech/neondb?ssl=require` |
 | `SEARCH_PROVIDER` | `duckduckgo` \| `tavily` \| `mcp` \| `none` | `duckduckgo` |
 | `MCP_SERVER_URL` | When `SEARCH_PROVIDER=mcp` | `http://127.0.0.1:8765/mcp` |
-| `AUTH_MODE` | `none` \| `api_key` \| `clerk` | `none` |
-| `CLERK_PUBLISHABLE_KEY` | Clerk public key | `pk_test_...` |
+| `AUTH_MODE` | `none` \| `api_key` \| `clerk` | `none` (dev), `clerk` (prod) |
+| `CLERK_PUBLISHABLE_KEY` | Clerk public key (backend + UI bootstrap) | `pk_test_...` |
 | `CLERK_ISSUER` | Clerk JWT issuer | `https://xxx.clerk.accounts.dev` |
 | `CORS_ORIGINS` | Comma-separated allowed origins | `http://localhost:3000,https://app.vercel.app` |
 | `DEBUG_ENDPOINT_ENABLED` | Enable `POST /debug` | `true` (dev), `false` (prod) |
-| `RATE_LIMIT_PER_MINUTE` | Per-IP rate limit (0 = off) | `30` |
+| `RATE_LIMIT_PER_MINUTE` | Per-IP rate limit (`0` = off) | `30` |
+| `APP_ENV` | Environment label | `dev` / `production` |
 
 Pull Clerk keys automatically:
 
@@ -319,13 +369,23 @@ Pull Clerk keys automatically:
 npx clerk env pull --file .env
 ```
 
-### Frontend (`frontend/.env.local`)
+### Frontend environment variables
+
+Copy `frontend/.env.example` → `frontend/.env.local`.
 
 | Variable | Description |
 |----------|-------------|
-| `API_BACKEND_URL` | Backend URL for Next.js rewrites (required for prod on Vercel) |
+| `API_BACKEND_URL` | Backend URL for Next.js rewrites (**required on Vercel**) |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk widget (optional) |
-| `CLERK_SECRET_KEY` | Clerk server-side (optional) |
+| `CLERK_SECRET_KEY` | Clerk server-side middleware (optional) |
+
+### Clerk setup (Next.js + FastAPI)
+
+1. Create an application at [clerk.com](https://clerk.com).
+2. Add keys to **both** `.env` (backend) and `frontend/.env.local`.
+3. Set `AUTH_MODE=clerk` in backend `.env`.
+4. Add your Vercel domain under **Allowed origins** in the Clerk dashboard.
+5. Protected routes (`/triage`, `/debug`, `/history`, `/stats`, `/metrics`) require a valid Bearer JWT.
 
 ---
 
@@ -344,6 +404,8 @@ npx clerk env pull --file .env
 | `GET` | `/` | Open | Legacy static test console |
 
 Via Vercel, prefix with `/api` — e.g. `/api/health`, `/api/triage`.
+
+Interactive docs (local backend): http://127.0.0.1:8000/docs
 
 ---
 
@@ -364,13 +426,14 @@ triage-agent/
 │   ├── src/components/       # TriageApp, CaseSidebar, VisualGuideModal, …
 │   ├── src/lib/api.ts        # Same-origin /api client
 │   ├── next.config.ts        # API rewrite proxy
-│   └── vercel.json           # Vercel project settings
+│   └── vercel.json           # Vercel project settings (region: bom1)
 ├── mcp_server/               # Standalone MCP medical search server
-├── tests/                    # pytest suite (55+ tests)
+├── tests/                    # pytest suite (55 tests)
 ├── scripts/                  # Evaluation utilities
 ├── render.yaml               # Render Blueprint (backend)
 ├── railway.toml              # Railway config (backend)
 ├── Procfile                  # Generic PaaS start command
+├── runtime.txt               # Python 3.12.8
 ├── docker-compose.yml        # Local PostgreSQL
 ├── requirements.txt
 └── .env.example
@@ -378,12 +441,15 @@ triage-agent/
 
 ### Frontend features
 
-- **Virtualized case sidebar** — all 100 cases via `@tanstack/react-virtual`
-- **Visual guide modal** — animated LangGraph pipeline tour
-- **Mobile layout** — bottom nav, responsive grid
-- **Dark theme** — ViZ Triage branding
-- **Clerk auth** — optional; passthrough when keys unset
-- **Connection banner** — surfaces API connectivity issues
+| Feature | Implementation |
+|---------|----------------|
+| Virtualized case sidebar | `@tanstack/react-virtual` — all 100 cases scroll smoothly |
+| Visual guide modal | Animated LangGraph pipeline tour (Pipeline / Features / Safety tabs) |
+| Execution trace | Live node-by-node debug output in sidebar |
+| Mobile layout | Bottom nav, responsive grid, touch-friendly controls |
+| Dark theme | ViZ Triage branding with Framer Motion transitions |
+| Clerk auth | Optional; middleware passthrough when keys unset |
+| Connection banner | Surfaces API connectivity issues on load |
 
 ---
 
@@ -394,12 +460,41 @@ triage-agent/
 pytest
 ```
 
-Tests force `AUTH_MODE=none` and in-memory SQLite — no API keys or Postgres required.
+55 tests — forces `AUTH_MODE=none` and in-memory SQLite; no API keys or Postgres required.
+
+**Run evaluation over the full dataset:**
+
+```bash
+python scripts/evaluate_dataset.py
+```
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| **"Cannot reach the triage engine"** in UI | Backend not running or wrong `API_BACKEND_URL` | Start uvicorn locally; on Vercel, set `API_BACKEND_URL` to your Render/Railway URL |
+| **`/api/health` returns 404 on Vercel** | Root Directory not set to `frontend` | Vercel project settings → Root Directory → `frontend` |
+| **CORS errors** (direct API calls) | Missing origin in backend | Add Vercel URL to `CORS_ORIGINS` in backend env |
+| **Render cold start timeout** | Free tier spins down | First request may take ~30s; health check wakes the service |
+| **`/cases` 503** | External dataset unreachable | Backend falls back to `app/static/data/cases.json` automatically |
+| **Auth misconfigured** | `AUTH_MODE=clerk` without keys | Set Clerk keys or use `AUTH_MODE=none` for demo |
+| **MCP disconnected** in `/health` | MCP server not running | Start `python -m mcp_server.server` or switch to `SEARCH_PROVIDER=duckduckgo` |
+
+---
+
+## Security notes
+
+- Never commit `.env` or `.env.local` — they are gitignored.
+- Set `DEBUG_ENDPOINT_ENABLED=false` in production.
+- Rotate any API keys that were exposed during development.
+- Use `AUTH_MODE=clerk` or `api_key` before exposing the API publicly.
 
 ---
 
 ## License
 
-Built for the Stance Health technical interview. See repository for usage terms.
- 
- 
+Built for the **Stance Health** technical interview.
+
+**Author:** [Vijayshree Pathak](https://github.com/vijayshreepathak) · [triage-agent](https://github.com/vijayshreepathak/triage-agent)
