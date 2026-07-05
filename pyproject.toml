@@ -1,0 +1,28 @@
+[project]
+name = "symptom-triage-agent"
+version = "0.1.0"
+description = "Clinical symptom triage agent — FastAPI + LangGraph + Pydantic v2"
+requires-python = ">=3.12"
+
+[tool.black]
+line-length = 110
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "ASYNC", "ANN"]
+# ANN401: `Any` is banned by convention; decorator internals excepted explicitly.
+# E501: line length is enforced by Black; long string literals (descriptions, prompts) are allowed.
+ignore = ["ANN401", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN"]  # test helpers may skip annotations for brevity
+"scripts/*" = ["ANN", "ASYNC230"]  # CLI script: sync file write after gather is fine
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing"

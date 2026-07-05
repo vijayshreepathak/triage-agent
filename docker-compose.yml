@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stance-triage-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: triage
+      POSTGRES_PASSWORD: triage_secret
+      POSTGRES_DB: triage
+    ports:
+      - "5432:5432"
+    volumes:
+      - triage_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U triage -d triage"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  triage_pg_data:

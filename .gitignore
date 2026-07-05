@@ -1,0 +1,39 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Secrets & local config
+.env
+.env.local
+.env.*.local
+frontend/.env.local
+
+# Test / lint caches
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# SQLite (local dev fallback)
+*.db
+triage.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend (also see frontend/.gitignore)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.vercel/

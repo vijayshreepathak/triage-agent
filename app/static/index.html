@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stance Triage — Clinical Decision Support</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">ST</div>
+        <div>
+          <h1>Stance Triage</h1>
+          <p>Clinical decision support · LangGraph</p>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="cases">Cases <span id="caseCountBadge" class="badge-count">0</span></button>
+        <button class="tab" data-tab="history">History</button>
+      </div>
+      <div id="casesPanel">
+        <div class="search-box">
+          <input id="caseSearch" type="search" placeholder="Search all 100 cases…" />
+          <div class="case-nav">
+            <button id="prevCase" class="icon-btn" title="Previous case">◀</button>
+            <span id="casePosition">— / 100</span>
+            <button id="nextCase" class="icon-btn" title="Next case">▶</button>
+          </div>
+        </div>
+        <div id="caseList" class="list"></div>
+      </div>
+      <div id="historyPanel" hidden>
+        <div id="historyList" class="list"></div>
+      </div>
+    </aside>
+
+    <section class="main">
+      <header class="topbar">
+        <div id="statusPills"></div>
+        <div class="spacer"></div>
+        <button id="guideBtn" class="icon-btn" title="Feature guide">Guide</button>
+        <button id="themeBtn" class="icon-btn" title="Toggle theme">Theme</button>
+        <label class="toggle"><input type="checkbox" id="debugMode" /> trace</label>
+        <button id="clearChat" class="icon-btn" title="Clear chat">Clear</button>
+        <div id="authMount" class="auth-mount">
+          <div id="authSignedOut" class="auth-actions" hidden>
+            <button id="signInBtn" type="button" class="btn ghost auth-btn">Sign in</button>
+            <button id="signUpBtn" type="button" class="btn primary auth-btn">Sign up</button>
+          </div>
+          <div id="authSignedIn" class="auth-actions" hidden>
+            <span id="authUserLabel" class="auth-user"></span>
+            <div id="userButtonMount"></div>
+          </div>
+          <span id="authOpenAccess" class="pill">open access</span>
+        </div>
+      </header>
+
+      <div id="chat" class="chat"></div>
+
+      <footer class="composer">
+        <div class="composer-inner">
+          <textarea id="message" rows="3" placeholder="Describe symptoms or select a dataset case from the sidebar…"></textarea>
+          <div class="composer-actions">
+            <button id="send" class="btn primary">Run Triage</button>
+            <button id="copyLast" class="btn ghost" disabled>Copy JSON</button>
+          </div>
+        </div>
+        <div class="hint">Enter to send · Shift+Enter for new line · Results persisted · LLM proposes, rules dispose</div>
+      </footer>
+    </section>
+
+    <aside class="panel">
+      <h3>Dashboard</h3>
+      <div id="statsPanel"></div>
+      <h3 class="mt">Quick Links</h3>
+      <div class="quick-links">
+        <a href="/docs" target="_blank">API Docs</a>
+        <a href="/metrics" target="_blank">Metrics</a>
+        <a href="/health" target="_blank">Health</a>
+      </div>
+      <h3 class="mt">Architecture</h3>
+      <ul class="arch-list">
+        <li>11-node LangGraph pipeline</li>
+        <li>Structured clinical extraction</li>
+        <li>Deterministic red-flag engine</li>
+        <li>Conditional evidence retrieval</li>
+        <li>Persisted audit trail</li>
+      </ul>
+    </aside>
+  </div>
+
+  <div id="guideModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <header class="modal-header">
+        <h2>Feature Guide</h2>
+        <button id="closeGuide" class="icon-btn">Close</button>
+      </header>
+      <div class="modal-body">
+        <section>
+          <h3>Clinical Triage</h3>
+          <p>Each message runs through an 11-node LangGraph pipeline: parse, extract signals, normalize symptoms, red-flag detection, urgency classification, conditional search, evidence merge, clinical explanation, confidence scoring, and structured response.</p>
+        </section>
+        <section>
+          <h3>Dataset Cases</h3>
+          <p>One hundred benchmark cases load in the sidebar. Search, select, or navigate with the previous and next controls. Free-text input is supported for ad hoc evaluation.</p>
+        </section>
+        <section>
+          <h3>Safety Model</h3>
+          <p>LLM proposes, rules dispose. Deterministic red-flag rules can only escalate urgency. Disclaimers are fixed in code. Confidence is computed heuristically, not self-reported by the model.</p>
+        </section>
+        <section>
+          <h3>Evidence Retrieval</h3>
+          <p>High-acuity presentations skip external search to reduce latency. Other cases may query configured search providers. Source URLs are taken verbatim from retrieval results.</p>
+        </section>
+        <section>
+          <h3>History and Audit</h3>
+          <p>Each triage run is stored with patient ID, urgency, confidence, and decision summary. Use the History tab to review prior runs and reload a case into the composer.</p>
+        </section>
+        <section>
+          <h3>Access Control</h3>
+          <p>When Clerk authentication is enabled, sign in to run triage, view history, and access dashboard metrics. Session tokens are verified server-side via JWKS.</p>
+        </section>
+        <section>
+          <h3>Controls</h3>
+          <ul>
+            <li><strong>Trace</strong> — expose node-level execution details</li>
+            <li><strong>Copy JSON</strong> — export the last structured response</li>
+            <li><strong>Theme</strong> — switch between dark and light mode</li>
+            <li><strong>Clear</strong> — reset the conversation panel</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# Render Blueprint — deploy the FastAPI backend (frontend goes to Vercel).
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: triage-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: APP_ENV
+        value: production
+      - key: DEBUG_ENDPOINT_ENABLED
+        value: "false"
+      - key: SEARCH_PROVIDER
+        value: duckduckgo
+      - key: AUTH_MODE
+        value: none
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "30"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
