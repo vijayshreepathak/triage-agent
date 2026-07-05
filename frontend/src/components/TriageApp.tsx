@@ -195,7 +195,7 @@ export function TriageApp() {
       />
 
       <section className={`relative z-10 flex min-h-0 min-w-0 flex-col pb-[72px] lg:pb-0 ${mobileView === "chat" ? "flex" : "hidden lg:flex"}`}>
-        <Header health={health} config={config} onClear={() => setResults([])} onGuideTour={() => setGuideOpen(true)} />
+        <Header health={health} onClear={() => setResults([])} onGuideTour={() => setGuideOpen(true)} />
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
           {error && !results.length && (

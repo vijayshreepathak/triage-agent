@@ -1,25 +1,32 @@
 "use client";
 
-import {
-  Show,
-  SignInButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { StanceAgentLogo } from "./StanceAgentLogo";
-import type { AppConfig, HealthResponse } from "@/lib/types";
+import type { HealthResponse } from "@/lib/types";
 
 const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
+function AccountIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M5 20c0-3.314 3.134-6 7-6s7 2.686 7 6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 interface HeaderProps {
   health: HealthResponse | null;
-  config: AppConfig | null;
   onClear: () => void;
   onGuideTour?: () => void;
 }
 
-export function Header({ health, config, onClear, onGuideTour }: HeaderProps) {
-  const clerkEnabled = hasClerkKey && config?.auth_mode === "clerk" && config?.clerk_configured;
-
+export function Header({ health, onClear, onGuideTour }: HeaderProps) {
   return (
     <header className="flex flex-wrap items-center gap-2 border-b border-white/10 bg-[#0c1220]/80 px-3 py-2.5 backdrop-blur-md sm:px-4 sm:py-3">
       <div className="mr-2 lg:hidden">
@@ -54,9 +61,6 @@ export function Header({ health, config, onClear, onGuideTour }: HeaderProps) {
             >
               DB · {health.database} {health.database_connected ? "✓" : ""}
             </span>
-            <span className="hidden shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-slate-400 sm:inline">
-              Auth · {health.auth_mode}
-            </span>
           </>
         )}
       </div>
@@ -71,26 +75,38 @@ export function Header({ health, config, onClear, onGuideTour }: HeaderProps) {
             Guide tour
           </button>
         )}
-        <button type="button" onClick={onClear} className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs hover:bg-white/5 sm:px-3">
+        <button
+          type="button"
+          onClick={onClear}
+          className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs hover:bg-white/5 sm:px-3"
+        >
           Clear chat
         </button>
-        {clerkEnabled ? (
-          <div className="flex items-center gap-1.5">
+        {hasClerkKey && (
+          <div className="flex items-center">
             <Show when="signed-out">
               <SignInButton mode="modal">
-                <button type="button" className="rounded-lg border border-white/10 px-2 py-1.5 text-xs hover:bg-white/5">
-                  Sign in
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 rounded-lg border border-indigo-500/40 bg-indigo-500/15 px-2.5 py-1.5 text-xs font-medium text-indigo-100 hover:bg-indigo-500/25"
+                  aria-label="Sign in"
+                >
+                  <AccountIcon />
+                  <span className="hidden sm:inline">Sign in</span>
                 </button>
               </SignInButton>
             </Show>
             <Show when="signed-in">
-              <UserButton appearance={{ variables: { colorPrimary: "#6366f1" } }} />
+              <UserButton
+                appearance={{
+                  variables: { colorPrimary: "#6366f1", colorBackground: "#0c1220" },
+                  elements: {
+                    avatarBox: "h-8 w-8 ring-2 ring-indigo-500/40",
+                  },
+                }}
+              />
             </Show>
           </div>
-        ) : (
-          <span className="hidden rounded-full border border-emerald-500/40 px-2 py-0.5 text-[10px] text-emerald-400 sm:inline">
-            signed in
-          </span>
         )}
       </div>
     </header>
