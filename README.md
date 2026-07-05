@@ -495,6 +495,5 @@ python scripts/evaluate_dataset.py
 
 ## License
 
-Built for the **Stance Health** technical interview.
 
 **Author:** [Vijayshree Pathak](https://github.com/vijayshreepathak) · [triage-agent](https://github.com/vijayshreepathak/triage-agent)
