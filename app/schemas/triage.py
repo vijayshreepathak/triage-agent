@@ -36,7 +36,7 @@ class SourceOut(BaseModel):
 class TriageResponse(BaseModel):
     """POST /triage response body.
 
-    Matches the interview target output shape:
+    Matches the structured triage output contract:
     patient_message_id, urgency_level, red_flags, triage_decision,
     confidence, reasoning, disclaimers, recommended_action, sources.
     """

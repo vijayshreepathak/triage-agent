@@ -103,7 +103,7 @@ async def stats(repository: RepositoryDep, user_id: UserDep) -> dict[str, object
 
 @router.get("/cases", include_in_schema=False)
 async def cases() -> dict[str, object]:
-    """Proxy the interview dataset for the UI (cached; avoids browser CORS)."""
+    """Proxy the clinical dataset for the UI (cached; avoids browser CORS)."""
     global _cases_cache  # noqa: PLW0603 - simple process-lifetime cache
     if _cases_cache is None:
         try:

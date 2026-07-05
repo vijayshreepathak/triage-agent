@@ -6,11 +6,13 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-pipeline-purple.svg)](app/graph/builder.py)
 [![Tests](https://img.shields.io/badge/tests-55%20passing-brightgreen.svg)](tests/)
 
-**Clinical symptom triage co-pilot** built for the Stance Health technical interview — an 11-node LangGraph pipeline with Claude, PostgreSQL history, optional Clerk auth, and MCP-backed medical search.
+**Clinical symptom triage co-pilot** — an 11-node LangGraph pipeline with Claude, PostgreSQL history, Clerk auth, and MCP-backed medical search.
 
 | | |
 |---|---|
+| **Live demo** | [vizagent-dun.vercel.app](https://vizagent-dun.vercel.app/) |
 | **Repository** | [github.com/vijayshreepathak/triage-agent](https://github.com/vijayshreepathak/triage-agent) |
+| **API backend** | [triage-agent-7xts.onrender.com](https://triage-agent-7xts.onrender.com) |
 | **Frontend** | Next.js 16 · React 19 · Tailwind 4 · Framer Motion |
 | **Backend** | FastAPI · LangGraph · Pydantic v2 · SQLAlchemy async |
 | **Deploy** | Vercel (UI) + Render / Railway (API) + Neon (DB) |
@@ -408,7 +410,7 @@ Copy `frontend/.env.example` → `frontend/.env.local`.
 |--------|------|------|-------------|
 | `GET` | `/health` | Open | Liveness, DB + MCP status |
 | `GET` | `/config` | Open | Frontend bootstrap (no secrets) |
-| `GET` | `/cases` | Open | 100-case interview dataset |
+| `GET` | `/cases` | Open | 100-case clinical dataset |
 | `POST` | `/triage` | When enabled | Run triage graph |
 | `POST` | `/debug` | When enabled | Triage + execution trace |
 | `GET` | `/history` | When enabled | Persisted runs |

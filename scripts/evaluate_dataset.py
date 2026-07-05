@@ -1,4 +1,4 @@
-"""Run the 100-case interview dataset through a live triage server.
+"""Run the 100-case clinical dataset through a live triage server.
 
 Usage (server must be running, e.g. `uvicorn app.api.main:app`):
 

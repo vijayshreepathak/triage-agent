@@ -99,9 +99,21 @@ export function Header({ health, onClear, onGuideTour }: HeaderProps) {
             <Show when="signed-in">
               <UserButton
                 appearance={{
-                  variables: { colorPrimary: "#6366f1", colorBackground: "#0c1220" },
+                  variables: {
+                    colorPrimary: "#6366f1",
+                    colorBackground: "#0f1628",
+                    colorForeground: "#f1f5f9",
+                    colorMutedForeground: "#94a3b8",
+                    colorNeutral: "#1e293b",
+                  },
                   elements: {
                     avatarBox: "h-8 w-8 ring-2 ring-indigo-500/40",
+                    userButtonPopoverCard: "bg-[#0f1628] border border-white/10 shadow-xl",
+                    userButtonPopoverActionButton: "text-slate-200 hover:bg-white/10",
+                    userButtonPopoverActionButtonText: "text-slate-200",
+                    userButtonPopoverActionButtonIcon: "text-slate-300",
+                    userPreviewMainIdentifier: "text-slate-100",
+                    userPreviewSecondaryIdentifier: "text-slate-400",
                   },
                 }}
               />

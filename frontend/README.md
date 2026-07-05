@@ -2,8 +2,7 @@
 
 Next.js 16 App Router UI for the clinical triage agent. Deploy this folder to **Vercel**.
 
-**Full documentation:** [../README.md](../README.md)  
-**Repository:** [github.com/vijayshreepathak/triage-agent](https://github.com/vijayshreepathak/triage-agent)
+**Live demo:** [vizagent-dun.vercel.app](https://vizagent-dun.vercel.app/)
 
 ## Quick start
 

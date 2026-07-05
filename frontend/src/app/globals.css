@@ -44,3 +44,58 @@ body {
 ::selection {
   background: rgba(99, 102, 241, 0.35);
 }
+
+/* Clerk account menu — ensure readable text on dark UI */
+.cl-userButtonPopoverCard,
+.cl-userButtonPopoverMain,
+.cl-userButtonPopoverActions {
+  background-color: #0f1628 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.cl-userButtonPopoverActionButton,
+.cl-userButtonPopoverActionButtonText,
+.cl-userButtonPopoverActionButtonIcon {
+  color: #e2e8f0 !important;
+}
+
+.cl-userButtonPopoverActionButton:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.cl-userPreviewMainIdentifier {
+  color: #f1f5f9 !important;
+}
+
+.cl-userPreviewSecondaryIdentifier {
+  color: #94a3b8 !important;
+}
+
+.cl-modalBackdrop {
+  background: rgba(0, 0, 0, 0.75) !important;
+}
+
+.cl-card,
+.cl-signIn-start,
+.cl-signUp-start {
+  background: #0f1628 !important;
+  color: #f1f5f9 !important;
+}
+
+.cl-formButtonPrimary {
+  background: #6366f1 !important;
+}
+
+.cl-footerActionLink,
+.cl-formFieldLabel,
+.cl-headerTitle,
+.cl-headerSubtitle,
+.cl-socialButtonsBlockButtonText {
+  color: #e2e8f0 !important;
+}
+
+.cl-formFieldInput {
+  background: #06080f !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
