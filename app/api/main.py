@@ -77,7 +77,9 @@ def create_app() -> FastAPI:
     # Middleware runs bottom-up: request context first, then rate limiting.
     app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute)
     app.add_middleware(RequestContextMiddleware)
-    app.mount("/assets", StaticFiles(directory=_STATIC_DIR), name="assets")
+    # Legacy static assets only in dev — production serves API-only at /.
+    if settings.app_env.strip().lower() != "production":
+        app.mount("/assets", StaticFiles(directory=_STATIC_DIR), name="assets")
     app.include_router(router)
 
     @app.exception_handler(Exception)

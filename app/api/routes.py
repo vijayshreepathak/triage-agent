@@ -38,9 +38,45 @@ _cases_cache: dict[str, object] | None = None
 
 
 @router.get("/", include_in_schema=False)
-async def index() -> object:
-    """Serve the test console (dev convenience, no business logic)."""
-    from fastapi.responses import FileResponse
+async def index(settings: SettingsDep) -> object:
+    """Dev: legacy static console. Production: redirect to Next.js UI or API landing."""
+    from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+
+    if settings.app_env.strip().lower() == "production":
+        frontend = settings.frontend_url.strip()
+        if frontend:
+            return RedirectResponse(url=frontend, status_code=307)
+        return HTMLResponse(
+            """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ViZ Triage Agent — API</title>
+  <style>
+    body{font-family:system-ui,sans-serif;background:#06080f;color:#e2e8f0;margin:0;min-height:100vh;display:grid;place-items:center;padding:2rem}
+    main{max-width:32rem;text-align:center}
+    h1{font-size:1.5rem;margin-bottom:.5rem}
+    p{color:#94a3b8;line-height:1.6}
+    a{color:#22d3ee;margin:0 .35rem}
+    code{background:#0f172a;padding:.15rem .4rem;border-radius:.25rem;font-size:.85em}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ViZ Triage Agent — API only</h1>
+    <p>This Render service runs the FastAPI + LangGraph backend.
+       The modern UI is deployed separately on Vercel.</p>
+    <p>Set <code>FRONTEND_URL</code> to your Vercel domain to auto-redirect here.</p>
+    <p>
+      <a href="/docs">API docs</a> ·
+      <a href="/health">Health</a> ·
+      <a href="/cases">Cases JSON</a>
+    </p>
+  </main>
+</body>
+</html>"""
+        )
 
     return FileResponse(_STATIC_DIR / "index.html")
 

@@ -89,6 +89,10 @@ class Settings(BaseSettings):
     app_env: str = "dev"
     log_level: str = "INFO"
     debug_endpoint_enabled: bool = True
+    frontend_url: str = Field(
+        default="",
+        description="ViZ Triage Next.js URL on Vercel. In production, GET / redirects here instead of the legacy static UI.",
+    )
     cors_origins: str = Field(
         default="http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000",
         description="Comma-separated origins for the Next.js frontend.",

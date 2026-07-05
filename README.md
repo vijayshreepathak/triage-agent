@@ -225,7 +225,16 @@ RATE_LIMIT_PER_MINUTE=30
 CORS_ORIGINS=https://your-app.vercel.app
 ```
 
-6. Copy the public URL, e.g. `https://triage-api.onrender.com`.
+6. Copy the public URL, e.g. `https://triage-agent-7xts.onrender.com`.
+
+7. **Optional but recommended** — stop Render from showing the legacy static UI:
+
+```env
+APP_ENV=production
+FRONTEND_URL=https://your-app.vercel.app
+```
+
+With these set, visiting the Render URL redirects to your **ViZ Triage** Vercel app. Without `FRONTEND_URL`, Render shows a minimal “API only” page with links to `/docs` and `/health`.
 
 **Alternatives:** use the included `Procfile` (Railway via `railway.toml`) or Fly.io with the same start command.
 
@@ -362,6 +371,7 @@ Copy `.env.example` → `.env` at the repo root.
 | `DEBUG_ENDPOINT_ENABLED` | Enable `POST /debug` | `true` (dev), `false` (prod) |
 | `RATE_LIMIT_PER_MINUTE` | Per-IP rate limit (`0` = off) | `30` |
 | `APP_ENV` | Environment label | `dev` / `production` |
+| `FRONTEND_URL` | Vercel UI URL — Render `/` redirects here in production | `https://vizagent-dun.vercel.app` |
 
 Pull Clerk keys automatically:
 
@@ -477,7 +487,7 @@ python scripts/evaluate_dataset.py
 | **`DNS_HOSTNAME_RESOLVED_PRIVATE` on Vercel** | `API_BACKEND_URL` missing → defaults to `127.0.0.1:8000` | Vercel → Settings → Env → `API_BACKEND_URL=https://your-api.onrender.com` → **Redeploy** |
 | **`404 {"detail":"Not Found"}` on Vercel** | Wrong backend URL or Clerk blocked `/api/*` | Set `API_BACKEND_URL=https://triage-agent-7xts.onrender.com` (**no `/api` suffix**). App uses `/engine/*` proxy path |
 | **`/engine/health` returns 404 on Vercel** | Root Directory not set to `frontend` | Vercel project settings → Root Directory → `frontend` |
-| **Two different UIs / themes** | Render serves legacy static UI at `/` | Use **Vercel URL** for ViZ Triage Next.js UI; Render URL is **API only** |
+| **Two different UIs / themes** | Render serves legacy static UI when `APP_ENV=dev` | Set `APP_ENV=production` and `FRONTEND_URL=https://your-app.vercel.app` on Render → redeploy |
 | **CORS errors** (direct API calls) | Missing origin in backend | Add Vercel URL to `CORS_ORIGINS` in backend env |
 | **Render cold start timeout** | Free tier spins down | First request may take ~30s; health check wakes the service |
 | **`/cases` 503** | External dataset unreachable | Backend falls back to `app/static/data/cases.json` automatically |

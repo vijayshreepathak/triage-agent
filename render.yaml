@@ -21,6 +21,8 @@ services:
         value: none
       - key: RATE_LIMIT_PER_MINUTE
         value: "30"
+      - key: FRONTEND_URL
+        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: DATABASE_URL
