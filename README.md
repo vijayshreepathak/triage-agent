@@ -474,7 +474,7 @@ python scripts/evaluate_dataset.py
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
-| **"Cannot reach the triage engine"** in UI | Backend not running or wrong `API_BACKEND_URL` | Start uvicorn locally; on Vercel, set `API_BACKEND_URL` to your Render/Railway URL |
+| **`DNS_HOSTNAME_RESOLVED_PRIVATE` on Vercel** | `API_BACKEND_URL` missing → defaults to `127.0.0.1:8000` | Vercel → Settings → Env → `API_BACKEND_URL=https://your-api.onrender.com` → **Redeploy** |
 | **`/api/health` returns 404 on Vercel** | Root Directory not set to `frontend` | Vercel project settings → Root Directory → `frontend` |
 | **CORS errors** (direct API calls) | Missing origin in backend | Add Vercel URL to `CORS_ORIGINS` in backend env |
 | **Render cold start timeout** | Free tier spins down | First request may take ~30s; health check wakes the service |

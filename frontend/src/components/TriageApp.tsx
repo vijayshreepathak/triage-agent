@@ -50,6 +50,7 @@ export function TriageApp() {
 
   const clerkRequired = config?.auth_mode === "clerk" && config?.clerk_configured;
   const canRun = !clerkRequired || (isLoaded && isSignedIn);
+  const backendOnline = health?.status === "ok" || health?.status === "degraded";
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -85,7 +86,14 @@ export function TriageApp() {
       setHealth(data.health);
       setConfig(data.config);
       setCases(data.cases);
-      showToast(`${data.cases.length} cases ready`);
+      if (data.backendError) {
+        setError(data.backendError);
+      } else {
+        showToast(`${data.cases.length} cases ready`);
+      }
+      if (data.casesFromFallback && data.cases.length > 0) {
+        showToast(`${data.cases.length} cases loaded (offline dataset)`);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not connect");
     } finally {
@@ -189,10 +197,12 @@ export function TriageApp() {
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
           {error && !results.length && (
-            <ConnectionBanner message={error} onRetry={loadApp} />
+            <div className="mb-6">
+              <ConnectionBanner message={error} onRetry={loadApp} />
+            </div>
           )}
 
-          {!error && !results.length && (
+          {!results.length && (
             <motion.div
               className="mx-auto max-w-xl py-12 text-center"
               initial={{ opacity: 0, y: 16 }}
@@ -249,11 +259,11 @@ export function TriageApp() {
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              disabled={!canRun || !!error}
+              disabled={!canRun || !backendOnline}
               rows={3}
               placeholder={
-                error
-                  ? "Fix the connection above to start…"
+                !backendOnline
+                  ? "Connect the API backend to run triage…"
                   : canRun
                     ? "Tell us what you're experiencing — chest pain, fever, dizziness, anything…"
                     : "Sign in to continue…"
@@ -269,7 +279,7 @@ export function TriageApp() {
             <div className="flex flex-row gap-2 sm:flex-col">
               <button
                 type="button"
-                disabled={loading || !canRun || !!error}
+                disabled={loading || !canRun || !backendOnline}
                 onClick={handleSend}
                 className="flex-1 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:brightness-110 disabled:opacity-45 sm:flex-none sm:px-6"
               >
