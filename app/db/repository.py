@@ -81,16 +81,21 @@ class TriageRepository:
             result = await session.execute(stmt)
             return int(result.scalar() or 0)
 
-    async def list_for_patient(self, patient_id: str, limit: int = _DEFAULT_LIMIT) -> list[TriageRecord]:
-        """Runs for one patient id, newest first."""
+    async def list_for_patient(
+        self, patient_id: str, limit: int = _DEFAULT_LIMIT, *, user_id: str | None = None
+    ) -> list[TriageRecord]:
+        """Runs for one patient id, newest first; scoped to user when provided."""
         limit = max(1, min(limit, _MAX_LIMIT))
         async with self._db.session() as session:
-            result = await session.execute(
+            stmt = (
                 select(TriageRecord)
                 .where(TriageRecord.patient_id == patient_id)
                 .order_by(desc(TriageRecord.created_at))
                 .limit(limit)
             )
+            if user_id:
+                stmt = stmt.where(TriageRecord.user_id == user_id)
+            result = await session.execute(stmt)
             return list(result.scalars().all())
 
     async def stats(self, *, user_id: str | None = None) -> dict[str, object]:

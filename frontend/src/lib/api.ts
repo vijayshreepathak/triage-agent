@@ -51,6 +51,11 @@ async function request<T>(path: string, init?: RequestInit, token?: string | nul
   if (!res.ok) {
     const text = await res.text();
     const snippet = text.slice(0, 160).replace(/\s+/g, " ").trim();
+    if (res.status === 401) {
+      throw new Error(
+        "Authentication required. Sign in again — and ensure Render has AUTH_MODE=clerk with CLERK_ISSUER set.",
+      );
+    }
     if (res.status === 404 && snippet.includes("DNS_HOSTNAME_RESOLVED_PRIVATE")) {
       throw new Error(
         `Backend URL points to a private address (localhost). ${backendHint()}`,

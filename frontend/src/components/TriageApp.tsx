@@ -29,7 +29,7 @@ const CHIPS = [
 ];
 
 export function TriageApp() {
-  const { getToken, isSignedIn, isLoaded } = useAppAuth();
+  const { getToken, isSignedIn, isLoaded, clerkEnabled } = useAppAuth();
   const [booting, setBooting] = useState(true);
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -48,9 +48,9 @@ export function TriageApp() {
   const [mobileView, setMobileView] = useState<"cases" | "chat" | "stats">("chat");
   const manualCounter = useRef(0);
 
-  const clerkRequired = config?.auth_mode === "clerk" && config?.clerk_configured;
-  const canRun = !clerkRequired || (isLoaded && isSignedIn);
   const backendOnline = health?.status === "ok" || health?.status === "degraded";
+  const clerkRequired = clerkEnabled && (config?.auth_mode === "clerk" || health?.auth_mode === "clerk");
+  const canRun = isLoaded && isSignedIn && backendOnline;
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -58,12 +58,12 @@ export function TriageApp() {
   };
 
   const token = useCallback(async () => {
-    if (!clerkRequired) return null;
+    if (!isSignedIn) return null;
     return getToken();
-  }, [clerkRequired, getToken]);
+  }, [isSignedIn, getToken]);
 
   const refreshProtected = useCallback(async () => {
-    if (clerkRequired && !isSignedIn) {
+    if (!isSignedIn) {
       setHistory([]);
       setStats(null);
       return;
@@ -73,8 +73,10 @@ export function TriageApp() {
       const [h, s] = await Promise.all([getHistory(t), getStats(t)]);
       setHistory(h.records ?? []);
       setStats(s);
-    } catch {
-      /* optional */
+    } catch (e) {
+      if (clerkRequired) {
+        setError(e instanceof Error ? e.message : "Could not load your history");
+      }
     }
   }, [clerkRequired, isSignedIn, token]);
 
@@ -264,9 +266,9 @@ export function TriageApp() {
               placeholder={
                 !backendOnline
                   ? "Connect the API backend to run triage…"
-                  : canRun
-                    ? "Tell us what you're experiencing — chest pain, fever, dizziness, anything…"
-                    : "Sign in to continue…"
+                  : !isSignedIn
+                    ? "Sign in to continue…"
+                    : "Tell us what you're experiencing — chest pain, fever, dizziness, anything…"
               }
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {

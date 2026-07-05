@@ -185,7 +185,7 @@ async def history(
     """Persisted triage runs, newest first; optionally filtered by patient."""
     uid = user_id if user_id not in (None, "api_key") else None
     if patient_id:
-        records = await repository.list_for_patient(patient_id, limit)
+        records = await repository.list_for_patient(patient_id, limit, user_id=uid)
     else:
         records = await repository.list_recent(limit, user_id=uid)
     return HistoryResponse(

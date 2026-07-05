@@ -1,14 +1,19 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-/** Clerk proxy — passthrough when publishable key is not configured. */
-export default process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  ? clerkMiddleware()
-  : () => NextResponse.next();
+/** Backend proxy + Clerk auth pages — no login required for these paths only. */
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/engine(.*)"]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    return;
+  }
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
   matcher: [
-    // Do NOT match /engine/* — those requests proxy to the FastAPI backend via next.config rewrites.
     "/((?!_next|engine|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/__clerk/:path*",
   ],

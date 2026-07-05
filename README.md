@@ -218,11 +218,14 @@ Or manually:
 ANTHROPIC_API_KEY=sk-ant-...
 DATABASE_URL=postgresql+asyncpg://USER:PASS@HOST/neondb?ssl=require
 SEARCH_PROVIDER=duckduckgo
-AUTH_MODE=none
+AUTH_MODE=clerk
+CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_ISSUER=https://your-instance.clerk.accounts.dev
 APP_ENV=production
 DEBUG_ENDPOINT_ENABLED=false
 RATE_LIMIT_PER_MINUTE=30
 CORS_ORIGINS=https://your-app.vercel.app
+FRONTEND_URL=https://your-app.vercel.app
 ```
 
 6. Copy the public URL, e.g. `https://triage-agent-7xts.onrender.com`.
@@ -250,8 +253,8 @@ With these set, visiting the Render URL redirects to your **ViZ Triage** Vercel 
 | Variable | Required | Value |
 |----------|----------|-------|
 | `API_BACKEND_URL` | **Yes** | `https://triage-agent-7xts.onrender.com` (no `/api` suffix) |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | No | `pk_live_...` |
-| `CLERK_SECRET_KEY` | No | `sk_live_...` |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | **Yes** | `pk_test_...` or `pk_live_...` |
+| `CLERK_SECRET_KEY` | **Yes** | `sk_test_...` or `sk_live_...` |
 
 5. Deploy.
 

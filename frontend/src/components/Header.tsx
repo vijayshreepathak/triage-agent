@@ -88,8 +88,8 @@ export function Header({ health, config, onClear, onGuideTour }: HeaderProps) {
             </Show>
           </div>
         ) : (
-          <span className="hidden rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-slate-400 sm:inline">
-            {config?.auth_mode === "clerk" ? "auth misconfigured" : "open access"}
+          <span className="hidden rounded-full border border-emerald-500/40 px-2 py-0.5 text-[10px] text-emerald-400 sm:inline">
+            signed in
           </span>
         )}
       </div>

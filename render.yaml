@@ -18,9 +18,13 @@ services:
       - key: SEARCH_PROVIDER
         value: duckduckgo
       - key: AUTH_MODE
-        value: none
+        value: clerk
       - key: RATE_LIMIT_PER_MINUTE
         value: "30"
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_ISSUER
+        sync: false
       - key: FRONTEND_URL
         sync: false
       - key: ANTHROPIC_API_KEY
