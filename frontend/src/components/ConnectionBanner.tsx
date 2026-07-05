@@ -52,7 +52,11 @@ export function ConnectionBanner({
             <li>
               In Vercel → <strong className="text-slate-200">Settings → Environment Variables</strong>, add{" "}
               <code className="rounded bg-black/40 px-1 py-0.5 text-[11px] text-cyan-300">API_BACKEND_URL</code>{" "}
-              = your public API URL, then <strong className="text-slate-200">Redeploy</strong>.
+              = your public API URL (no <code className="text-slate-300">/api</code> suffix), e.g.{" "}
+              <code className="rounded bg-black/40 px-1 py-0.5 text-[11px] text-cyan-300">
+                https://triage-agent-7xts.onrender.com
+              </code>
+              , then <strong className="text-slate-200">Redeploy</strong>.
             </li>
           </ol>
         </div>

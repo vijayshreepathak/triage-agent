@@ -8,8 +8,8 @@ export default process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Do NOT match /engine/* — those requests proxy to the FastAPI backend via next.config rewrites.
+    "/((?!_next|engine|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/__clerk/:path*",
-    "/(api|trpc)(.*)",
   ],
 };

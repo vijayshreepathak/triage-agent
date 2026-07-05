@@ -8,8 +8,8 @@ import type {
   TriageResponse,
 } from "./types";
 
-/** Same-origin proxy via Next.js rewrites — avoids CORS / failed fetch. */
-const API_BASE = "/api";
+/** Same-origin proxy via Next.js rewrites (/engine, not /api — avoids Clerk middleware conflict). */
+const API_BASE = "/engine";
 
 export type BootstrapResult = {
   health: HealthResponse | null;

@@ -60,7 +60,7 @@ flowchart TB
 
     subgraph Vercel["Vercel — frontend"]
         Next["Next.js App Router"]
-        Proxy["/api/* rewrite proxy"]
+        Proxy["/engine/* rewrite proxy"]
     end
 
     subgraph Backend["Render / Railway — backend"]
@@ -99,7 +99,7 @@ flowchart TB
 | **Search** | DuckDuckGo, Tavily, or MCP | In-process or separate MCP server |
 | **Auth** | Clerk JWT (optional) | Clerk + FastAPI JWKS verification |
 
-> **Why two hosts?** Vercel runs the Next.js frontend and rewrites `/api/*` to your backend URL. The FastAPI + LangGraph engine is a long-running Python process and must run on a container/PaaS host — it cannot run as a Vercel serverless function in this architecture.
+> **Why two hosts?** Vercel runs the Next.js **ViZ Triage** UI and rewrites `/engine/*` to your backend URL. Render/Railway runs the **FastAPI API** (the legacy static UI at `/` on Render is dev-only — use Vercel for production UI).
 
 ### Monorepo layout
 
@@ -175,7 +175,7 @@ sequenceDiagram
     participant D as Neon DB
 
     U->>N: Select case / type message
-    N->>F: POST /api/triage (rewrite proxy)
+    N->>F: POST /engine/triage (rewrite proxy)
     F->>F: Auth (optional Clerk JWT)
     F->>G: runner.run(patient_id, message)
     loop 11 nodes
@@ -188,7 +188,7 @@ sequenceDiagram
     N-->>U: Animated result card
 ```
 
-The frontend never calls the backend directly from the browser — it uses **same-origin** `/api` paths. Next.js rewrites those to `API_BACKEND_URL`, avoiding CORS issues in dev and production.
+The frontend never calls the backend directly from the browser — it uses **same-origin** `/engine` paths. Next.js rewrites those to `API_BACKEND_URL`, avoiding CORS issues and Clerk middleware conflicts (Clerk reserves `/api/*`).
 
 ---
 
@@ -240,7 +240,7 @@ CORS_ORIGINS=https://your-app.vercel.app
 
 | Variable | Required | Value |
 |----------|----------|-------|
-| `API_BACKEND_URL` | **Yes** | `https://triage-api.onrender.com` (your backend URL) |
+| `API_BACKEND_URL` | **Yes** | `https://triage-agent-7xts.onrender.com` (no `/api` suffix) |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | No | `pk_live_...` |
 | `CLERK_SECRET_KEY` | No | `sk_live_...` |
 
@@ -260,8 +260,8 @@ npx vercel --prod
 | Check | URL |
 |-------|-----|
 | UI loads | `https://your-app.vercel.app` |
-| Health (via proxy) | `https://your-app.vercel.app/api/health` |
-| Cases | `https://your-app.vercel.app/api/cases` |
+| Health (via proxy) | `https://your-app.vercel.app/engine/health` |
+| Cases | `https://your-app.vercel.app/engine/cases` |
 | Backend direct | `https://triage-api.onrender.com/health` |
 
 After Vercel assigns your domain, update backend `CORS_ORIGINS` to include it (and preview URLs if needed).
@@ -289,7 +289,7 @@ flowchart LR
 
     Repo -->|auto deploy| FE
     Repo -->|auto deploy| BE
-    FE -->|"rewrite /api/*"| BE
+    FE -->|"rewrite /engine/*"| BE
     BE --> NeonDB
     BE --> Anthropic
 ```
@@ -403,7 +403,7 @@ Copy `frontend/.env.example` → `frontend/.env.local`.
 | `GET` | `/metrics` | When enabled | JSON metrics snapshot |
 | `GET` | `/` | Open | Legacy static test console |
 
-Via Vercel, prefix with `/api` — e.g. `/api/health`, `/api/triage`.
+Via Vercel, prefix with `/engine` — e.g. `/engine/health`, `/engine/triage`.
 
 Interactive docs (local backend): http://127.0.0.1:8000/docs
 
@@ -424,7 +424,7 @@ triage-agent/
 │   └── static/               # Legacy HTML UI + cases.json fallback
 ├── frontend/                 # Next.js 16 App Router (deploy to Vercel)
 │   ├── src/components/       # TriageApp, CaseSidebar, VisualGuideModal, …
-│   ├── src/lib/api.ts        # Same-origin /api client
+│   ├── src/lib/api.ts        # Same-origin /engine client
 │   ├── next.config.ts        # API rewrite proxy
 │   └── vercel.json           # Vercel project settings (region: bom1)
 ├── mcp_server/               # Standalone MCP medical search server
@@ -475,7 +475,9 @@ python scripts/evaluate_dataset.py
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | **`DNS_HOSTNAME_RESOLVED_PRIVATE` on Vercel** | `API_BACKEND_URL` missing → defaults to `127.0.0.1:8000` | Vercel → Settings → Env → `API_BACKEND_URL=https://your-api.onrender.com` → **Redeploy** |
-| **`/api/health` returns 404 on Vercel** | Root Directory not set to `frontend` | Vercel project settings → Root Directory → `frontend` |
+| **`404 {"detail":"Not Found"}` on Vercel** | Wrong backend URL or Clerk blocked `/api/*` | Set `API_BACKEND_URL=https://triage-agent-7xts.onrender.com` (**no `/api` suffix**). App uses `/engine/*` proxy path |
+| **`/engine/health` returns 404 on Vercel** | Root Directory not set to `frontend` | Vercel project settings → Root Directory → `frontend` |
+| **Two different UIs / themes** | Render serves legacy static UI at `/` | Use **Vercel URL** for ViZ Triage Next.js UI; Render URL is **API only** |
 | **CORS errors** (direct API calls) | Missing origin in backend | Add Vercel URL to `CORS_ORIGINS` in backend env |
 | **Render cold start timeout** | Free tier spins down | First request may take ~30s; health check wakes the service |
 | **`/cases` 503** | External dataset unreachable | Backend falls back to `app/static/data/cases.json` automatically |
