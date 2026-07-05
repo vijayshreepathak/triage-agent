@@ -494,6 +494,4 @@ python scripts/evaluate_dataset.py
 ---
 
 ## License
-
-
-**Author:** [Vijayshree Pathak](https://github.com/vijayshreepathak) · [triage-agent](https://github.com/vijayshreepathak/triage-agent)
+**Author:** [Vijayshree Pathak](https://github.com/vijayshreepathak)
